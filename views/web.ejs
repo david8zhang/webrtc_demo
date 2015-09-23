@@ -1,0 +1,98 @@
+<!DOCTYPE HTML>
+<html>
+	<style>
+		.connectionstate {
+		    position: absolute;
+		    top: 0px;
+		    width: 100%;
+		    text-align: center;
+		    color: #fff
+		}
+	</style>
+	<head>
+	</head>
+	<body>
+		<!-- Video elements -->
+		<div class="container">
+    <button id="start-session">Start</button>
+    <div id="videos-container"></div>
+		</div>
+        <script src="/socket.io/socket.io.js"></script>         
+		<script>
+        //Set up signalling
+        var socket = io.connect('http://localhost:4100');
+        socket.on('connect', function(data){
+            socket.emit('join', 'hello world from Client');
+        });
+
+        socket.on('messages', function(data){
+            console.log(data);
+        })
+
+        //Connect to ICE and STUN Servers
+        var servers = {
+        iceServers: [
+             {url: "stun:23.21.150.121"},
+             {url: "stun:stun.1.google.com:19302"}
+            ]   
+        };
+
+        //Click start to begin the session
+        var start_button = document.getElementById("start-session").addEventListener(
+          "click", function(){
+            beginSession();
+          })
+
+        //Call start(true) to initiate the call
+        function beginSession(){
+          start(true);
+        }
+
+        function start(isCaller){
+            //Set up new RTCPeerConnection (for the caller)
+            var pc = new webkitRTCPeerConnection(servers); 
+
+            navigator.getUserMedia = navigator.getUserMedia || navigator.mozGetUserMedia ||
+                   navigator.webkitGetUserMedia || navigator.msGetUserMedia;
+
+            pc.onaddstream = function(obj){
+                //create the actual video div tag
+                var vid = document.createElement('video');
+                vid.controls = true;
+                var video_div = document.getElementById("videos-container")
+                video_div.appendChild(vid);
+
+                //Create the stream and insert it into the video div
+                vid.src = window.URL.createObjectURL(obj.stream);
+                vid.play();
+            }
+
+            pc.onicecandidate = function(evt){
+              //Use socket.io here for signalling purposes
+              socket.emit("ICECandidates", JSON.stringify({"candidate": evt.candidate}));
+            }
+
+            navigator.getUserMedia({video: true, audio:true}, function(stream){
+                
+                //Add the onaddstream because addStream might not necessarily 
+                //have onaddstream as a callback function
+                pc.onaddstream({stream: stream});
+                pc.addStream(stream);
+
+                if(isCaller)
+                  //create an SDP Blob which defines an event handler callback function
+                  //inside. We'll call this 'gotDescription'
+                  pc.createOffer(gotDescription)
+                else
+                  pc.createAnswer(pc.remoteDescription, gotDescription);
+
+                function gotDescription(desc) {
+                  pc.setLocalDescription(desc);
+                  socket.emit("sdp-description", JSON.stringify({"sdp": desc}));
+                }
+            }, function(){console.warn("Error getting audio stream from getUserMedia")});
+        }
+		</script>
+
+	</body>	
+</html>

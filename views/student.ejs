@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html>
+    <style>
+        .connectionstate {
+            position: absolute;
+            top: 0px;
+            width: 100%;
+            text-align: center;
+            color: #fff
+        }
+    </style>
+    <head>
+    </head>
+    <body>
+        <!-- Video elements -->
+        <div class="container">
+    <button id="start-session">Start</button>
+    <video id="remoteView"></video>
+        </div>
+        <script src="/socket.io/socket.io.js"></script>         
+        <script>
+        var candidate; 
+        var sdp_description; 
+        console.log(sdp_description)
+        //Set up signalling
+        var socket = io.connect('http://localhost:4100');
+        socket.on('connect', function(data){
+            socket.emit('join', 'hello world from Client');
+        });
+
+        socket.on('messages', function(data){
+            console.log(data);
+        })
+
+        socket.on('ice-channel', function(data){
+            console.log(data);
+            candidate = data; 
+        })
+
+        socket.on('sdp-channel', function(data){
+            console.log(data);
+            sdp_description = data; 
+        })
+
+        //Connect to ICE and STUN Servers
+        var servers = {
+        iceServers: [
+             {url: "stun:23.21.150.121"},
+             {url: "stun:stun.1.google.com:19302"}
+            ]   
+        };
+
+        var sdpConstraints = {
+            optional: [],
+            mandatory: {
+                OfferToReceiveAudio: true,
+                OfferToReceiveVideo: true
+            }
+        };
+
+        //Click start to begin the session
+        var start_button = document.getElementById("start-session").addEventListener(
+          "click", function(){
+            beginSession();
+          })
+
+        //Call start(true) to initiate the call
+        function beginSession(){
+          start(true);
+        }
+
+        function start(isCaller){
+            //Set up new RTCPeerConnection (for the caller)
+            var pc = new webkitRTCPeerConnection(servers);
+
+            pc.onaddstream = function(evt){
+                var remoteView = document.getElementById("remoteView");
+                remoteView.src = window.URL.createObjectUrl; 
+                remoteView.play(); 
+            }
+
+            if(sdp_description != null)
+                pc.setRemoteDescription(new RTCSessionDescription(sdp_description));
+            else {
+                pc.addIceCandidate(new RTCIceCandidate({
+                    sdpMLineIndex: candidate.sdpMLineIndex,
+                    candidate: candidate.candidate
+                })); 
+            }
+
+
+            function gotDescription(desc){
+                pc.setLocalDescription(desc);
+                socket.emit("sdp-channel", JSON.stringify({"sdp": desc}));
+
+            }
+
+            pc.createAnswer(gotDescription, function(error){
+                console.log(error);
+                console.log("could not connect to SDP answer")
+            }, sdpConstraints);
+
+
+
+            //Set the remote description with the received sdp blob
+        }
+        </script>
+
+    </body> 
+</html>

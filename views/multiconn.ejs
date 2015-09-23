@@ -1,0 +1,53 @@
+<!DOCTYPE HTML>
+<html>
+	<style>
+		.connectionstate {
+		    position: absolute;
+		    top: 0px;
+		    width: 100%;
+		    text-align: center;
+		    color: #fff
+		}
+	</style>
+	<head>
+	</head>
+	<body>
+		<!-- Video elements -->
+		<div class="container">
+    <div id="videos-container"></div>
+    <button id="openNewSessionButton">Open New Room</button>
+		</div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/latest.js"></script>         
+		<script>
+		//Construct the RTCMultiConnection
+		var initiator = new RTCMultiConnection('sample');
+
+		initiator.session = {
+			audio: true,
+			video: true,
+			screen: false,
+			data: false, 
+			oneway: true,
+			broadcast: false
+		}
+
+		initiator.sessionid = "fuckboy";
+
+		initiator.transmitRoomOnce = false; 
+		initiator.interval = 3000; //in milliseconds
+
+		initiator.sdpConstraints.mandatory = {
+			OfferToReceiveAudio: false,
+			OfferToReceiveVideo: false,
+			VoiceActivityDetection: true
+		}
+
+		document.getElementById("openNewSessionButton").onclick = function(){
+			initiator.open('sample'); 
+		}
+
+		</script>
+
+	</body>	
+</html>

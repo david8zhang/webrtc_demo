@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html>
+	<style>
+		.connectionstate {
+		    position: absolute;
+		    top: 0px;
+		    width: 100%;
+		    text-align: center;
+		    color: #fff
+		}
+	</style>
+	<head>
+	</head>
+	<body>
+		<!-- Video elements -->
+		<div class="container">
+<button id="setup-new-room">Setup New Conference</button>
+<table style="width: 100%;" id="rooms-list"></table>
+<div id="videos-container"></div>
+		</div>
+		<script src="/latest.js"></script>
+		<script src="/conference.js"></script>
+		<script src="/RTCPeerConnection-v1.5.js"></script>
+		<script src="/socket.io.js"></script>
+        <script src="/webrtc.io.js"></script>
+        <script src="/meeting.js"></script>
+		<script>
+			var meeting = new Meeting('meeting-unique-id');
+
+			//on getting local or remote streams
+			meeting.onaddstream = function(e){
+				document.body.appendChild(e.video);
+			};
+
+			meeting.check();
+			document.getElementById('setup-new-meeting').onclick = function() {
+			    meeting.setup('meeting room name');
+			};
+
+			meeting.onmeeting = function(room) {
+			    var li = document.createElement('li');
+			    li.setAttribute('user-id', room.userid);
+			    li.setAttribute('room-id', room.roomid);
+			    li.onclick = function() {
+			        var room = {
+			            userid: this.getAttribute('user-id'),
+			            roomid: this.getAttribute('room-id')
+			        };
+			        meeting.meet(room);
+			    };
+			};
+
+			// if someone leaves; just remove his video
+			meeting.onuserleft = function(userid) {
+			    var video = document.getElementById(userid);
+			    if(video) video.parentNode.removeChild(video);
+			};
+
+			meeting.onaddstream = function(e) {
+			    // e.type == 'local' ---- it is local media stream
+			    // e.type == 'remote' --- it is remote media stream
+			    document.body.appendChild(e.video);
+			};
+		</script>
+
+	</body>	
+</html>

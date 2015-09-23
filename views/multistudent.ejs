@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<html>
+	<style>
+		.connectionstate {
+		    position: absolute;
+		    top: 0px;
+		    width: 100%;
+		    text-align: center;
+		    color: #fff
+		}
+	</style>
+	<head>
+	</head>
+	<body>
+		<!-- Video elements -->
+		<div class="container">
+    <div id="videos-container"></div>
+    <button id="openNewSessionButton">Open New Room</button>
+		</div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/latest.js"></script>         
+		<script>
+		var participant = new RTCMultiConnection('sample') // sample is the channel id for signaling
+
+		var sessionDescription = {
+			sessionid: "fuckboy",
+			session: {
+				audio: true,
+				video: false
+			}
+		}
+
+		participant.sdpConstraints.mandatory = {
+			OfferToReceiveAudio: true,
+			OfferToReceiveVideo: true,
+			VoiceActivityDetection: true
+		}
+
+		participant.join(sessionDescription);
+		</script>
+
+	</body>	
+</html>

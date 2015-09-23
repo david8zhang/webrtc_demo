@@ -1,0 +1,25 @@
+{
+  "name": "vidchat_tests",
+  "version": "1.0.0",
+  "description": "tests for webRTC streaming and other functionality",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/david8zhang/vidchat_tests.git"
+  },
+  "author": "David Zhang",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/david8zhang/vidchat_tests/issues"
+  },
+  "homepage": "https://github.com/david8zhang/vidchat_tests#readme",
+  "dependencies": {
+    "ejs": "^2.3.3",
+    "express": "^4.13.3",
+    "multirtc": "^7.0.2",
+    "rtcmulticonnection": "^2.2.4"
+  }
+}
